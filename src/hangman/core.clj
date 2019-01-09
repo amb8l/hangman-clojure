@@ -3,4 +3,6 @@
 
 (defn -main
   [& args]
-  (start-cli))
+  (if (= 0 (count args))
+    (start-cli)
+    (start-cli (nth args 0))))
