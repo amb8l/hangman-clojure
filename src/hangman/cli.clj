@@ -1,12 +1,14 @@
 (ns hangman.cli
   (:require [clojure.string :as str]
-            [hangman.hangman :refer :all]))
+            [hangman.dictionary :refer :all]
+            [hangman.hangman :refer :all])
+  (:import (java.io FileNotFoundException)))
 
 (declare get-guess)
 
 (defn- game-result [game]
   (if (and (= :game-over (game :state)) (= 0 (game :guesses-remaining)))
-    "You lost!"
+    (str "You lost! The correct word was '" (str/join "" (game :letters)) "'.")
     "Congratulations, you won!")
   )
 
@@ -43,7 +45,16 @@
          (play-turn game)
          (play-until-game-over))))
 
-(defn start-cli []
-  (println "Hangman")
-  (-> (new-game "software")
-      (play-until-game-over)))
+(defn start-cli
+  ([]
+   (println "Hangman")
+   (-> (new-game (choose-random-word rand-nth (get-words-from-file)))
+       (play-until-game-over)))
+  ([file]
+   (println "Hangman")
+   (try
+     (-> (new-game (choose-random-word rand-nth (get-words-from-file file)))
+         (play-until-game-over))
+     (catch FileNotFoundException e
+       (do (println "File not found, using default dictionary.")
+         (start-cli))))))
